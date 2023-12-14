@@ -172,7 +172,7 @@ void loop() {
     inputConsumer_t b{};
 //   b.reportId = 0x01;
 
-    b.ConsumerControl = volDirUp ? 0xE9 : 0xEA;
+    b.ConsumerControl = volDirUp ? 0xCD : 0xCD;  //0xE9 : 0xEA;
     volDirUp = volDirUp ? false : true;
     inputVolume->setValue((uint8_t*)&b,sizeof(b));
     inputVolume->notify();   
