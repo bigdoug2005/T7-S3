@@ -7,8 +7,27 @@
 #include "HIDKeyboardTypes.h"
 #include <Arduino.h>
 
+
+#define LED_PIN        17
+#define BUTTON_PIN     0
+
+// 0E2 Mute
+// 0e9 volume increment
+// 0ea volume decrement
+// 0CD play/pause
+// 0B0 play
+// 0B7 stop
+// 0b1 pause
+// 0b3 fast forward
+// 0b4 rewind
+// 0b5 next track
+// 0b6 previous track
+
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
+
+// Source: https://gist.github.com/ematt/29983b14381444ce1081177c65e22010
+
 
 const uint8_t keyboardHidDescriptor[] = {
   0x05, 0x0c,                    // USAGE_PAGE (Consumer Devices)
@@ -140,12 +159,34 @@ void taskServer(void*){
   delay(portMAX_DELAY);
 }
 
+bool readkey()
+{
+
+    if (digitalRead(BUTTON_PIN) == 0) {
+        delay(100);
+        //Wait for release
+        while (digitalRead(BUTTON_PIN) == 0);
+        return true;
+    }
+    return false;
+
+}  
+
+
   
 void setup() {
   Serial.begin(115200);
   Serial.println("Starting BLE work!");
   
   pinMode(ledPin, OUTPUT);
+
+  digitalWrite(LED_PIN, 1);
+  delay(500);
+  digitalWrite(LED_PIN, 0);
+  delay(500);
+  digitalWrite(LED_PIN, 1);
+  delay(500);
+  digitalWrite(LED_PIN, 0);
 
 //  keyboard_report.reportId = 0x02;
   //consumer_Report.reportId = 0x01;
@@ -157,30 +198,40 @@ void setup() {
 void loop() {
   static bool volDirUp = true;
   // put your main code here, to run repeatedly:
-  delay(4000);
+  delay(200);
   if(connected){
-    digitalWrite(ledPin, HIGH);
-    inputKeyboard_t a{};
-    a.Key = random(0x02,0x27);
- //   a.reportId = 0x02;
-    input->setValue((uint8_t*)&a,sizeof(a));
-    input->notify();
 
-    input->setValue((uint8_t*)(&keyboard_report), sizeof(keyboard_report));
-    input->notify();
+    if (readkey()) {
+        digitalWrite(LED_PIN, 1);
+        delay(500);
+        digitalWrite(LED_PIN, 0);
 
-    inputConsumer_t b{};
-//   b.reportId = 0x01;
+      //   inputKeyboard_t a{};
+      //   a.Key = random(0x02,0x27);
+      //   a.reportId = 0x02;
+      //   input->setValue((uint8_t*)&a,sizeof(a));
+      //   input->notify();
 
-    b.ConsumerControl = volDirUp ? 0xCD : 0xCD;  //0xE9 : 0xEA;
-    volDirUp = volDirUp ? false : true;
-    inputVolume->setValue((uint8_t*)&b,sizeof(b));
-    inputVolume->notify();   
+      //   input->setValue((uint8_t*)(&keyboard_report), sizeof(keyboard_report));
+      //   input->notify();
 
-    inputVolume->setValue((uint8_t*)&consumer_Report,sizeof(consumer_Report));
-    inputVolume->notify();  
+        inputConsumer_t b{};
+      //   b.reportId = 0x01;
 
-    delay(1000);
-    digitalWrite(ledPin, LOW);
+        b.ConsumerControl = volDirUp ? 0xB1 : 0xB0;  //0xE9 : 0xEA;
+        volDirUp = volDirUp ? false : true;
+        inputVolume->setValue((uint8_t*)&b,sizeof(b));
+        inputVolume->notify();   
+
+        inputVolume->setValue((uint8_t*)&consumer_Report,sizeof(consumer_Report));
+        inputVolume->notify();  
+
+        delay(100);
+    }
+
+
+
+
+    
   }
 }
