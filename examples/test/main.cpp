@@ -10,6 +10,7 @@
 
 #define LED_PIN        17
 #define BUTTON_PIN     0
+#define SWITCH_PIN     15
 
 // 0E2 Mute
 // 0e9 volume increment
@@ -119,7 +120,7 @@ class MyCallbacks : public BLEServerCallbacks {
 };
 
 
-  const int ledPin = 17;
+
 
 
 void taskServer(void*){
@@ -159,13 +160,13 @@ void taskServer(void*){
   delay(portMAX_DELAY);
 }
 
-bool readkey()
+bool readkey(int Button_To_Check)
 {
 
-    if (digitalRead(BUTTON_PIN) == 0) {
+    if (digitalRead(Button_To_Check) == 0) {
         delay(100);
         //Wait for release
-        while (digitalRead(BUTTON_PIN) == 0);
+        while (digitalRead(Button_To_Check) == 0);
         return true;
     }
     return false;
@@ -175,25 +176,26 @@ bool readkey()
 
   
 void setup() {
-  Serial.begin(115200);
-  Serial.println("Starting BLE work!");
-  
-  pinMode(ledPin, OUTPUT);
+    Serial.begin(115200);
+    Serial.println("Starting BLE work!");
 
-  digitalWrite(LED_PIN, 1);
-  delay(500);
-  digitalWrite(LED_PIN, 0);
-  delay(500);
-  digitalWrite(LED_PIN, 1);
-  delay(500);
-  digitalWrite(LED_PIN, 0);
+    pinMode(LED_PIN, OUTPUT);
+    pinMode(SWITCH_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_PIN, INPUT);
 
-//  keyboard_report.reportId = 0x02;
-  //consumer_Report.reportId = 0x01;
+    digitalWrite(LED_PIN, 1);
+    delay(500);
+    digitalWrite(LED_PIN, 0);
+    delay(500);
+    digitalWrite(LED_PIN, 1);
+    delay(500);
+    digitalWrite(LED_PIN, 0);
 
-  xTaskCreate(taskServer, "server", 20000, NULL, 5, NULL);
+    //  keyboard_report.reportId = 0x02;
+    //  consumer_Report.reportId = 0x01;
+
+    xTaskCreate(taskServer, "server", 20000, NULL, 5, NULL);
 }
-
 
 void loop() {
   static bool volDirUp = true;
@@ -201,7 +203,7 @@ void loop() {
   delay(200);
   if(connected){
 
-    if (readkey()) {
+    if (readkey(BUTTON_PIN)) {
         digitalWrite(LED_PIN, 1);
         delay(500);
         digitalWrite(LED_PIN, 0);
