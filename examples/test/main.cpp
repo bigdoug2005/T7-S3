@@ -10,7 +10,7 @@
 
 #define LED_PIN        17
 #define BUTTON_PIN     0
-#define SWITCH_PIN     15
+#define SWITCH_PIN     45
 
 // 0E2 Mute
 // 0e9 volume increment
@@ -124,7 +124,7 @@ class MyCallbacks : public BLEServerCallbacks {
 
 
 void taskServer(void*){
-  BLEDevice::init("ESP32");
+  BLEDevice::init("DeadManSwitch");
   BLEServer *pServer = BLEDevice::createServer();
   pServer->setCallbacks(new MyCallbacks());
 
@@ -147,7 +147,7 @@ void taskServer(void*){
 
 
   BLESecurity *pSecurity = new BLESecurity();
-//  pSecurity->setKeySize();
+
   pSecurity->setAuthenticationMode(ESP_LE_AUTH_BOND);
 
 
@@ -172,12 +172,10 @@ bool readkey(int Button_To_Check)
     return false;
 
 }  
-
-
-  
+ 
 void setup() {
     Serial.begin(115200);
-    Serial.println("Starting BLE work!");
+    Serial.println("Starting BLE");
 
     pinMode(LED_PIN, OUTPUT);
     pinMode(SWITCH_PIN, INPUT_PULLUP);
@@ -191,48 +189,32 @@ void setup() {
     delay(500);
     digitalWrite(LED_PIN, 0);
 
-    //  keyboard_report.reportId = 0x02;
-    //  consumer_Report.reportId = 0x01;
-
     xTaskCreate(taskServer, "server", 20000, NULL, 5, NULL);
 }
 
 void loop() {
-  static bool volDirUp = true;
-  // put your main code here, to run repeatedly:
+  static bool playStop = true;
+
   delay(200);
   if(connected){
 
-    if (readkey(BUTTON_PIN)) {
+    if (readkey(SWITCH_PIN)) {
         digitalWrite(LED_PIN, 1);
         delay(500);
         digitalWrite(LED_PIN, 0);
 
-      //   inputKeyboard_t a{};
-      //   a.Key = random(0x02,0x27);
-      //   a.reportId = 0x02;
-      //   input->setValue((uint8_t*)&a,sizeof(a));
-      //   input->notify();
-
-      //   input->setValue((uint8_t*)(&keyboard_report), sizeof(keyboard_report));
-      //   input->notify();
-
         inputConsumer_t b{};
-      //   b.reportId = 0x01;
 
-        b.ConsumerControl = volDirUp ? 0xB1 : 0xB0;  //0xE9 : 0xEA;
-        volDirUp = volDirUp ? false : true;
+        b.ConsumerControl = playStop ? 0xB1 : 0xB0;  
+        playStop = playStop ? false : true;
         inputVolume->setValue((uint8_t*)&b,sizeof(b));
         inputVolume->notify();   
 
-        inputVolume->setValue((uint8_t*)&consumer_Report,sizeof(consumer_Report));
-        inputVolume->notify();  
+        //inputVolume->setValue((uint8_t*)&consumer_Report,sizeof(consumer_Report));
+        //inputVolume->notify();  
 
         delay(100);
     }
-
-
-
 
     
   }
