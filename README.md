@@ -1,3 +1,6 @@
+This is the repo I first got the deadman switch working on. The working code has been ported over to the deadmanswitch repo. Keeping this around as a reference.
+
+
 <h1 align = "center">🌟LILYGO T7-S3🌟</h1>
 
 ## **English | [中文](./README_CN.MD)**
